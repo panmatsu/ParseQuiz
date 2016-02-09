@@ -15,7 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.opencsv.CSVReader;
+//import com.opencsv.CSVReader;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,64 +38,65 @@ public class QuizActivity extends Activity {
     MyCountDownTimer cdt;
     TextView timer;
     //CSVから読み取ったQuizデータ収納:[Stage][0~4]: [0]問題、[1]正解、[2~4]不正解*3の順
-    String[][]QuizText = new String[7][5];
+    String[][] QuizText = new String[7][5];
     //HPバー
     ProgressBar HpBar;
     int hpbar_max;//HPBarのMAX値
     Intent intent;     //インテント
 
     @Override
-    protected void onCreate(Bundle savedInstanceState){
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_quiz);
 
         //CountDownTextの取得
-        timer = (TextView)findViewById(R.id.textTimer);
+        timer = (TextView) findViewById(R.id.textTimer);
 
         //ListにQuestionの並び順を代入
-        for(int i = 0; i < 7; i++){
+        for (int i = 0; i < 7; i++) {
             Stage.add(i);
         }
 
         //選択肢Buttonの取得
-        btChoice[0] = (Button)findViewById(R.id.bt1);
-        btChoice[1] = (Button)findViewById(R.id.bt2);
-        btChoice[2] = (Button)findViewById(R.id.bt3);
-        btChoice[3] = (Button)findViewById(R.id.bt4);
+        btChoice[0] = (Button) findViewById(R.id.bt1);
+        btChoice[1] = (Button) findViewById(R.id.bt2);
+        btChoice[2] = (Button) findViewById(R.id.bt3);
+        btChoice[3] = (Button) findViewById(R.id.bt4);
 
         //HPbバーの取得
-        HpBar = (ProgressBar)findViewById(R.id.progreaabar);
+        HpBar = (ProgressBar) findViewById(R.id.progreaabar);
         hpbar_max = 30;
         HpBar.setMax(hpbar_max);
     }
 
     @Override
-    protected void onResume(){
+    protected void onResume() {
         super.onResume();
 
-        CSVReader reader;   //CSVReaderの宣言
+        //CSVReader reader;   //CSVReaderの宣言
         AssetManager as = getResources().getAssets();  //AssetManagerの取得
         InputStream is = null;
 
-        try{   //ファイルを開く
+        try {   //ファイルを開く
             is = as.open("quiz.csv");
-        }catch (IOException e){  //例外処理
+        } catch (IOException e) {  //例外処理
             e.printStackTrace();
         }
         InputStreamReader ireader = null;
-        try{ //文字コード"SJIS"で渡す
-            ireader = new InputStreamReader(is,"SJIS");
-        }catch (UnsupportedEncodingException e){  //例外処理
+        try { //文字コード"SJIS"で渡す
+            ireader = new InputStreamReader(is, "SJIS");
+        } catch (UnsupportedEncodingException e) {  //例外処理
             e.printStackTrace();
         }
-        reader = new CSVReader(ireader,',','"',0);
+        /*reader = new CSVReader(ireader, ',', '"', 0);
         try {  //QuizTextにCSVからのデータを入れる
-            for(int i = 0; i < 7; i++){
+            for (int i = 0; i < 7; i++) {
                 QuizText[i] = reader.readNext();
             }
         } catch (IOException e) {  //例外処理
             e.printStackTrace();
         }
+        */
 
         //初期値30000ミリ秒(=30秒)
         cdt = new MyCountDownTimer(30000, 100);
@@ -121,26 +122,26 @@ public class QuizActivity extends Activity {
         //問題選択肢の配列
         List<String> Choice = new ArrayList<String>();
         //Databaseから取得したデータを変数にセット
-        String questionTitle =QuizText[Stage.get(cntStage)][0];//問題文
-        for(int i = 0; i < 4; i++) {
-            Choice.add(QuizText[Stage.get(cntStage)][i+1]);      //選択肢
+        String questionTitle = QuizText[Stage.get(cntStage)][0];//問題文
+        for (int i = 0; i < 4; i++) {
+            Choice.add(QuizText[Stage.get(cntStage)][i + 1]);      //選択肢
         }
         Answer = Choice.get(0);       //答え
 
         //選択肢の並びをシャッフル
         Collections.shuffle(Choice);
         //改行を追加
-        questionTitle = questionTitle.replaceAll("の","\n\nの");
+        questionTitle = questionTitle.replaceAll("の", "\n\nの");
 
         //テキストに問題文と質問を配置
         TextView TextQuestion = (TextView) findViewById(R.id.textQuestion);
         TextQuestion.setText(questionTitle);
-        for(int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             btChoice[i].setText(Choice.get(i));
         }
 
         //ボタンの有効化
-        for (int i = 0;i < 4;i++){
+        for (int i = 0; i < 4; i++) {
             btChoice[i].setEnabled(true);
         }
     }
@@ -156,7 +157,7 @@ public class QuizActivity extends Activity {
         //ダイアログ
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         //Button連打を防ぐために一旦無効化
-        for(int i = 0;i < 4;i++){
+        for (int i = 0; i < 4; i++) {
             btChoice[i].setEnabled(false);
         }
         //Dialogの中でのBackKeyの無効化
@@ -191,8 +192,8 @@ public class QuizActivity extends Activity {
                     String[] time2 = time.split(":", 0);
 
                     //止めたところからリスタートする
-                    cdt = new MyCountDownTimer((Integer.parseInt(time2[0])*60+Integer.parseInt(time2[1]))*1000
-                            +Integer.parseInt(time2[2]),100);
+                    cdt = new MyCountDownTimer((Integer.parseInt(time2[0]) * 60 + Integer.parseInt(time2[1])) * 1000
+                            + Integer.parseInt(time2[2]), 100);
                     cdt.start();
                 }
                 //7以上の場合
@@ -220,22 +221,22 @@ public class QuizActivity extends Activity {
             timer.setText("0:00");
             Toast.makeText(getApplicationContext(), "時間切れだよ(´・ω・｀)\nもう一回挑戦してみよう", Toast.LENGTH_LONG).show();
             //その時点でのScoreを引き継いでリザルト画面へ
-            intent = new Intent(QuizActivity.this,ResultActivity.class);
-            intent.putExtra("SCORE",score);
+            intent = new Intent(QuizActivity.this, ResultActivity.class);
+            intent.putExtra("SCORE", score);
             startActivity(intent);
         }
 
         @Override
         public void onTick(long millisUntilFinished) {
             // インターバル(countDownInterval)毎に呼ばれる
-            long m = millisUntilFinished/1000/60;  //分
-            long s = millisUntilFinished/1000%60;  //秒
-            long ms = millisUntilFinished - s*1000 - m*1000*60;  //ミリ秒
+            long m = millisUntilFinished / 1000 / 60;  //分
+            long s = millisUntilFinished / 1000 % 60;  //秒
+            long ms = millisUntilFinished - s * 1000 - m * 1000 * 60;  //ミリ秒
 
-            HpBar.setProgress((int)s);
+            HpBar.setProgress((int) s);
 
-            timer.setText(String.format("%02d:%02d:%03d",m,s,ms)); //桁あわせ
-            if(s<=10.0){
+            timer.setText(String.format("%02d:%02d:%03d", m, s, ms)); //桁あわせ
+            if (s <= 10.0) {
                 //残り10秒になったら赤文字にしサイズを大きく
                 timer.setTextColor(Color.RED);
                 timer.setTextSize(30.0f);
@@ -245,11 +246,11 @@ public class QuizActivity extends Activity {
 
     //BackKeyの無効化
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if(keyCode != KeyEvent.KEYCODE_BACK){
+        if (keyCode != KeyEvent.KEYCODE_BACK) {
             return super.onKeyDown(keyCode, event);
-        }
-        else{
+        } else {
             Toast.makeText(this, "Quiz中は戻るボタン禁止です！！！！", Toast.LENGTH_SHORT).show();
             return false;
         }
     }
+}
