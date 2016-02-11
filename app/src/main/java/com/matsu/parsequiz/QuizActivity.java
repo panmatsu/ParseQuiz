@@ -4,10 +4,10 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -15,12 +15,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-//import com.opencsv.CSVReader;
+import com.nifty.cloud.mb.core.FetchCallback;
+import com.nifty.cloud.mb.core.NCMB;
+import com.nifty.cloud.mb.core.NCMBException;
+import com.nifty.cloud.mb.core.NCMBObject;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +29,7 @@ public class QuizActivity extends Activity {
     String Answer;    //正解
     int score;        //点数
     int cntStage = 0; //通しでの並び番号
+    int quiz_max = 7; //Quizの最大数
     //Questionの並び順
     List<Integer> Stage = new ArrayList<Integer>();
     //選択肢Buttonの取得
@@ -38,11 +38,20 @@ public class QuizActivity extends Activity {
     MyCountDownTimer cdt;
     TextView timer;
     //CSVから読み取ったQuizデータ収納:[Stage][0~4]: [0]問題、[1]正解、[2~4]不正解*3の順
-    String[][] QuizText = new String[7][5];
+    String[][] QuizText = new String[quiz_max][5];
     //HPバー
     ProgressBar HpBar;
     int hpbar_max;//HPBarのMAX値
     Intent intent;     //インテント
+    //QuizDBのobjectId
+    String objectId[] = {"exiTla2x8SZn5jWd",
+                         "M4zZMzsr7jJorz6b",
+                         "U6Qk6csyZk5xwURf",
+                         "G5ZrQ5Cx08u087Sg",
+                         "aPFrNxMe3x0tj2Zj",
+                         "w6zTHxdzQgPzcinj",
+                         "yjyL6VHX0GF2aR8k"};
+    int count;//?
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +62,7 @@ public class QuizActivity extends Activity {
         timer = (TextView) findViewById(R.id.textTimer);
 
         //ListにQuestionの並び順を代入
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < quiz_max; i++) {
             Stage.add(i);
         }
 
@@ -73,30 +82,8 @@ public class QuizActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        //CSVReader reader;   //CSVReaderの宣言
-        AssetManager as = getResources().getAssets();  //AssetManagerの取得
-        InputStream is = null;
-
-        try {   //ファイルを開く
-            is = as.open("quiz.csv");
-        } catch (IOException e) {  //例外処理
-            e.printStackTrace();
-        }
-        InputStreamReader ireader = null;
-        try { //文字コード"SJIS"で渡す
-            ireader = new InputStreamReader(is, "SJIS");
-        } catch (UnsupportedEncodingException e) {  //例外処理
-            e.printStackTrace();
-        }
-        /*reader = new CSVReader(ireader, ',', '"', 0);
-        try {  //QuizTextにCSVからのデータを入れる
-            for (int i = 0; i < 7; i++) {
-                QuizText[i] = reader.readNext();
-            }
-        } catch (IOException e) {  //例外処理
-            e.printStackTrace();
-        }
-        */
+        //niftyCloudからデータを取得
+        setQuizData();
 
         //初期値30000ミリ秒(=30秒)
         cdt = new MyCountDownTimer(30000, 100);
@@ -106,6 +93,169 @@ public class QuizActivity extends Activity {
         setQuestion();
         //カウントダウンスタート
         cdt.start();
+    }
+
+    private void setQuizData(){
+
+        //NCMBを扱うために最初にSDKの初期化を行う
+        //(Context, "APP_KEY", "CLIENT_KEY")
+        NCMB.initialize(this,
+                "1c8f4a612d9ea12236e3e6a9f55f62e950604615c486d2627548f83321582b93",
+                "d4d193f3c063c9374c127e9bb0fcef7f95188a1bfee8212c552f95fe048ad8e3");
+
+        /**
+         * TODO:for文ができなかった…
+         */
+
+            //QuizDBクラスにアクセス
+            final NCMBObject obj = new NCMBObject("QuizDB");
+            //objectIdをセットする
+            obj.setObjectId(objectId[0]);
+            obj.fetchInBackground(new FetchCallback<NCMBObject>() {
+                @Override
+                public void done(NCMBObject object, NCMBException e) {
+                    if (e != null) {
+                        Log.d("AAAAAAAAAAAAAAA","AAAAAAAAAAAAAAAAAAAAAAAAAA");
+
+                    } else {
+                        Log.d("IIIIIIIIIIIIIII","AAAAAAAAAAAAAAAAAAAAAAAAAA");
+                        //DBからQuizTextに代入
+                        QuizText[0][0] = obj.getString("Text");
+                        QuizText[0][1] = obj.getString("Answer");
+                        QuizText[0][2] = obj.getString("Dummy_1");
+                        QuizText[0][3] = obj.getString("Dummy_2");
+                        QuizText[0][4] = obj.getString("Dummy_3");
+                        Log.d("Test",QuizText[0][1]+QuizText[0][0]);
+                    }
+                }
+            });
+
+        //objectIdをセットする
+        obj.setObjectId(objectId[1]);
+        obj.fetchInBackground(new FetchCallback<NCMBObject>() {
+            @Override
+            public void done(NCMBObject object, NCMBException e) {
+                if (e != null) {
+                    Log.d("AAAAAAAAAAAAAAA","AAAAAAAAAAAAAAAAAAAAAAAAAA");
+
+                } else {
+                    Log.d("IIIIIIIIIIIIIII","AAAAAAAAAAAAAAAAAAAAAAAAAA");
+                    //DBからQuizTextに代入
+                    QuizText[1][0] = obj.getString("Text");
+                    QuizText[1][1] = obj.getString("Answer");
+                    QuizText[1][2] = obj.getString("Dummy_1");
+                    QuizText[1][3] = obj.getString("Dummy_2");
+                    QuizText[1][4] = obj.getString("Dummy_3");
+                    Log.d("Test",QuizText[1][1]+QuizText[1][0]);
+                }
+            }
+        });
+
+        //objectIdをセットする
+        obj.setObjectId(objectId[2]);
+        obj.fetchInBackground(new FetchCallback<NCMBObject>() {
+            @Override
+            public void done(NCMBObject object, NCMBException e) {
+                if (e != null) {
+                    Log.d("AAAAAAAAAAAAAAA","AAAAAAAAAAAAAAAAAAAAAAAAAA");
+
+                } else {
+                    Log.d("IIIIIIIIIIIIIII","AAAAAAAAAAAAAAAAAAAAAAAAAA");
+                    //DBからQuizTextに代入
+                    QuizText[2][0] = obj.getString("Text");
+                    QuizText[2][1] = obj.getString("Answer");
+                    QuizText[2][2] = obj.getString("Dummy_1");
+                    QuizText[2][3] = obj.getString("Dummy_2");
+                    QuizText[2][4] = obj.getString("Dummy_3");
+                    Log.d("Test",QuizText[2][1]+QuizText[2][0]);
+                }
+            }
+        });
+
+        //objectIdをセットする
+        obj.setObjectId(objectId[3]);
+        obj.fetchInBackground(new FetchCallback<NCMBObject>() {
+            @Override
+            public void done(NCMBObject object, NCMBException e) {
+                if (e != null) {
+                    Log.d("AAAAAAAAAAAAAAA","AAAAAAAAAAAAAAAAAAAAAAAAAA");
+
+                } else {
+                    Log.d("IIIIIIIIIIIIIII","AAAAAAAAAAAAAAAAAAAAAAAAAA");
+                    //DBからQuizTextに代入
+                    QuizText[3][0] = obj.getString("Text");
+                    QuizText[3][1] = obj.getString("Answer");
+                    QuizText[3][2] = obj.getString("Dummy_1");
+                    QuizText[3][3] = obj.getString("Dummy_2");
+                    QuizText[3][4] = obj.getString("Dummy_3");
+                    Log.d("Test",QuizText[3][1]+QuizText[3][0]);
+                }
+            }
+        });
+
+        //objectIdをセットする
+        obj.setObjectId(objectId[4]);
+        obj.fetchInBackground(new FetchCallback<NCMBObject>() {
+            @Override
+            public void done(NCMBObject object, NCMBException e) {
+                if (e != null) {
+                    Log.d("AAAAAAAAAAAAAAA","AAAAAAAAAAAAAAAAAAAAAAAAAA");
+
+                } else {
+                    Log.d("IIIIIIIIIIIIIII","AAAAAAAAAAAAAAAAAAAAAAAAAA");
+                    //DBからQuizTextに代入
+                    QuizText[4][0] = obj.getString("Text");
+                    QuizText[4][1] = obj.getString("Answer");
+                    QuizText[4][2] = obj.getString("Dummy_1");
+                    QuizText[4][3] = obj.getString("Dummy_2");
+                    QuizText[4][4] = obj.getString("Dummy_3");
+                    Log.d("Test",QuizText[4][1]+QuizText[4][0]);
+                }
+            }
+        });
+
+        //objectIdをセットする
+        obj.setObjectId(objectId[5]);
+        obj.fetchInBackground(new FetchCallback<NCMBObject>() {
+            @Override
+            public void done(NCMBObject object, NCMBException e) {
+                if (e != null) {
+                    Log.d("AAAAAAAAAAAAAAA","AAAAAAAAAAAAAAAAAAAAAAAAAA");
+
+                } else {
+                    Log.d("IIIIIIIIIIIIIII","AAAAAAAAAAAAAAAAAAAAAAAAAA");
+                    //DBからQuizTextに代入
+                    QuizText[5][0] = obj.getString("Text");
+                    QuizText[5][1] = obj.getString("Answer");
+                    QuizText[5][2] = obj.getString("Dummy_1");
+                    QuizText[5][3] = obj.getString("Dummy_2");
+                    QuizText[5][4] = obj.getString("Dummy_3");
+                    Log.d("Test",QuizText[5][1]+QuizText[5][0]);
+                }
+            }
+        });
+
+        //objectIdをセットする
+        obj.setObjectId(objectId[6]);
+        obj.fetchInBackground(new FetchCallback<NCMBObject>() {
+            @Override
+            public void done(NCMBObject object, NCMBException e) {
+                if (e != null) {
+                    Log.d("AAAAAAAAAAAAAAA","AAAAAAAAAAAAAAAAAAAAAAAAAA");
+
+                } else {
+                    Log.d("IIIIIIIIIIIIIII","AAAAAAAAAAAAAAAAAAAAAAAAAA");
+                    //DBからQuizTextに代入
+                    QuizText[6][0] = obj.getString("Text");
+                    QuizText[6][1] = obj.getString("Answer");
+                    QuizText[6][2] = obj.getString("Dummy_1");
+                    QuizText[6][3] = obj.getString("Dummy_2");
+                    QuizText[6][4] = obj.getString("Dummy_3");
+                    Log.d("Test",QuizText[6][1]+QuizText[6][0]);
+                }
+            }
+        });
+
     }
 
     private void setStage() {
@@ -131,7 +281,7 @@ public class QuizActivity extends Activity {
         //選択肢の並びをシャッフル
         Collections.shuffle(Choice);
         //改行を追加
-        questionTitle = questionTitle.replaceAll("の", "\n\nの");
+        //questionTitle = questionTitle.replaceAll("の", "\n\nの");
 
         //テキストに問題文と質問を配置
         TextView TextQuestion = (TextView) findViewById(R.id.textQuestion);
@@ -182,8 +332,8 @@ public class QuizActivity extends Activity {
                 /**
                  * 次へ進むボタンが押された時の処理
                  */
-                //7以下の場合
-                if (cntStage < 7) {
+                //quiz_max以下の場合
+                if (cntStage < quiz_max) {
                     //問題画面を更新させる
                     setQuestion();
                     //中止したtimeを取得
@@ -196,7 +346,7 @@ public class QuizActivity extends Activity {
                             + Integer.parseInt(time2[2]), 100);
                     cdt.start();
                 }
-                //7以上の場合
+                //quiz_max以上の場合
                 else {
                     //リザルト画面に移動
                     intent = new Intent(QuizActivity.this, ResultActivity.class);
@@ -218,7 +368,7 @@ public class QuizActivity extends Activity {
         @Override
         public void onFinish() {
             // カウントダウン完了後に呼ばれる
-            timer.setText("0:00");
+            timer.setText("00:00:0");
             Toast.makeText(getApplicationContext(), "時間切れだよ(´・ω・｀)\nもう一回挑戦してみよう", Toast.LENGTH_LONG).show();
             //その時点でのScoreを引き継いでリザルト画面へ
             intent = new Intent(QuizActivity.this, ResultActivity.class);
@@ -235,11 +385,10 @@ public class QuizActivity extends Activity {
 
             HpBar.setProgress((int) s);
 
-            timer.setText(String.format("%02d:%02d:%03d", m, s, ms)); //桁あわせ
+            timer.setText(String.format("%02d:%02d:%01d", m, s, ms/100)); //桁あわせ
             if (s <= 10.0) {
                 //残り10秒になったら赤文字にしサイズを大きく
                 timer.setTextColor(Color.RED);
-                timer.setTextSize(30.0f);
             }
         }
     }
