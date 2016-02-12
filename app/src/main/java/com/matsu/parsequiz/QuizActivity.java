@@ -115,8 +115,11 @@ public class QuizActivity extends Activity {
                 @Override
                 public void done(NCMBObject object, NCMBException e) {
                     if (e != null) {
-                        Log.d("AAAAAAAAAAAAAAA","AAAAAAAAAAAAAAAAAAAAAAAAAA");
-
+                        //エラー時の処理
+                        Toast.makeText(getApplicationContext(), "データを読み取れませんでした", Toast.LENGTH_LONG).show();
+                        //Toastを出してTitleへ戻る
+                        intent = new Intent(QuizActivity.this, TitleActivity.class);
+                        startActivity(intent);
                     } else {
                         Log.d("IIIIIIIIIIIIIII","AAAAAAAAAAAAAAAAAAAAAAAAAA");
                         //DBからQuizTextに代入
